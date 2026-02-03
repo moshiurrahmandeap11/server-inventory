@@ -1,10 +1,22 @@
+import cors from "cors";
 import express from "express";
+import { connectDB } from "./db/db.js";
+const PORT = process.env.PORT || 5000;
 
+import users from "./routes/usersRoute/users.js";
 const app = express();
-const PORT = 5000;
 
 // middleware
 app.use(express.json());
+app.use(cors({
+    origin: '*',
+    credentials: false
+}));
+
+await connectDB();
+
+// routes
+app.use("/api/users", users);
 
 
 // Simple test route
