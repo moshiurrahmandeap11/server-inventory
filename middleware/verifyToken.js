@@ -2,9 +2,8 @@ import jwt from "jsonwebtoken";
 
 // JWT middleware
 const verifyToken = (req, res, next) => {
-  // Token from headers
-  const authHeader = req.headers["authorization"]; // frontend e usually: "Bearer TOKEN"
-  const token = authHeader && authHeader.split(" ")[1];
+
+  const token = req.cookies.token;
 
   if (!token) {
     return res.status(401).json({ success: false, message: "Access Denied / No Token Provided" });
