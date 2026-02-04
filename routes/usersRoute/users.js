@@ -81,4 +81,59 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.post("/register", async (req, res) => {
+  try {
+    const { email, password, fullName } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and Password Required",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    const emailLower = email.toLowerCase();
+
+    // check existing
+    const existingUser = await db.collection("users").findOne({ email: emailLower });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "User already exists",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await db.collection("users").insertOne({
+      email: emailLower,
+      password: hashedPassword,
+      role: "user",          // SERVER CONTROLLED
+      fullName: fullName || "",
+      createdAt: new Date(),
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "User Created Successfully",
+    });
+
+  } catch (error) {
+    console.error("Registration Error", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+});
+
+
 export default router;
