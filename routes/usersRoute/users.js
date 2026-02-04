@@ -1,12 +1,13 @@
 import bcrypt from "bcryptjs";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
+import { ObjectId } from "mongodb";
 import { db } from "../../db/db.js";
 import verifyToken from "../../middleware/verifyToken.js";
 
 const router = Router();
 
-router.get("/", verifyToken, async (req, res) => {
+router.get("/",  async (req, res) => {
   try {
     const users = await db
       .collection("users")
@@ -131,6 +132,136 @@ router.post("/register", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
+    });
+  }
+});
+
+
+// get user by Id
+
+router.get("/:id", verifyToken, async(req, res) => {
+  try {
+    const {id} = req.params;
+
+    // check valid mongo ID
+    if(!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid User ID",
+      });
+    }
+
+    const user = await db.collection("users").findOne(
+      {_id: new ObjectId(id)},
+      {projection: {password: 0}}
+    );
+
+    if(!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    console.error("Get User error", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    })
+  }
+})
+
+router.patch("/:id", verifyToken, async(req, res) => {
+  try {
+    const {id} = req.params;
+    const {password, fullName} = req.body;
+
+    if(!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const updateDoc = {};
+
+    if(fullName) {
+      updateDoc.fullName = fullName;
+    }
+
+    if(password) {
+      if(password.length < 6){
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 6 characters",
+        });
+      }
+      updateDoc.password = await bcrypt.hash(password, 10);
+    }
+
+    const result = await db.collection("users").updateOne(
+      {_id: new ObjectId(id)},
+      {$set: updateDoc},
+    );
+
+    if(result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "user not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "User update successfully",
+    });
+  } catch (error) {
+    console.error("Update user error", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+});
+
+
+// delete user
+router.delete("/:id", verifyToken, async(req, res) => {
+  try {
+    const {id} = req.params;
+
+    if(!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid User ID",
+      });
+    }
+
+    const result = await db.collection("users").deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    if(result.deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "User deleted Successfully",
+    })
+  } catch (error) {
+    console.error("Delete user error", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
     });
   }
 });
