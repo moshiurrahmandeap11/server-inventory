@@ -18,8 +18,8 @@ const connectDB = async () => {
         if(!client) {
             client = new MongoClient(uri);
             await client.connect();
-            db = client.db();
-            console.log(("MongoDB Connected"));
+            db = client.db("super-inventory");
+            console.log(("MongoDB Connected to super inventory"));
         }
         return db;
     } catch (error) {

@@ -1,13 +1,21 @@
 import bcrypt from "bcryptjs";
 import { Router } from "express";
+import fs from "fs";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
+import path from "path";
+import { fileURLToPath } from "url";
 import { db } from "../../db/db.js";
+import upload from "../../middleware/upload.js";
 import verifyToken from "../../middleware/verifyToken.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 const router = Router();
 
-router.get("/",  async (req, res) => {
+router.get("/", verifyToken, async (req, res) => {
   try {
     const users = await db
       .collection("users")
@@ -75,6 +83,9 @@ router.post("/login", async (req, res) => {
       success: true,
       message: "Login Successful",
       token,
+      user: {
+        _id: user._id,
+      },
     });
   } catch (error) {
     console.error("Login Error", error);
@@ -103,7 +114,9 @@ router.post("/register", async (req, res) => {
     const emailLower = email.toLowerCase();
 
     // check existing
-    const existingUser = await db.collection("users").findOne({ email: emailLower });
+    const existingUser = await db
+      .collection("users")
+      .findOne({ email: emailLower });
 
     if (existingUser) {
       return res.status(409).json({
@@ -117,7 +130,7 @@ router.post("/register", async (req, res) => {
     await db.collection("users").insertOne({
       email: emailLower,
       password: hashedPassword,
-      role: "user",          // SERVER CONTROLLED
+      role: "user", // SERVER CONTROLLED
       fullName: fullName || "",
       createdAt: new Date(),
     });
@@ -126,7 +139,6 @@ router.post("/register", async (req, res) => {
       success: true,
       message: "User Created Successfully",
     });
-
   } catch (error) {
     console.error("Registration Error", error);
     res.status(500).json({
@@ -136,27 +148,49 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// logout
+
+router.post("/logout", (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    });
+
+    res.json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Logout failed",
+    });
+  }
+});
+
 
 // get user by Id
 
-router.get("/:id", verifyToken, async(req, res) => {
+router.get("/:id", verifyToken, async (req, res) => {
   try {
-    const {id} = req.params;
+    const { id } = req.params;
 
     // check valid mongo ID
-    if(!ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid User ID",
       });
     }
 
-    const user = await db.collection("users").findOne(
-      {_id: new ObjectId(id)},
-      {projection: {password: 0}}
-    );
+    const user = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(id) }, { projection: { password: 0 } });
 
-    if(!user) {
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -172,16 +206,16 @@ router.get("/:id", verifyToken, async(req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-    })
+    });
   }
-})
+});
 
-router.patch("/:id", verifyToken, async(req, res) => {
+router.patch("/:id", verifyToken, async (req, res) => {
   try {
-    const {id} = req.params;
-    const {password, fullName} = req.body;
+    const { id } = req.params;
+    const { password, fullName } = req.body;
 
-    if(!ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid user ID",
@@ -190,12 +224,12 @@ router.patch("/:id", verifyToken, async(req, res) => {
 
     const updateDoc = {};
 
-    if(fullName) {
+    if (fullName) {
       updateDoc.fullName = fullName;
     }
 
-    if(password) {
-      if(password.length < 6){
+    if (password) {
+      if (password.length < 6) {
         return res.status(400).json({
           success: false,
           message: "Password must be at least 6 characters",
@@ -204,12 +238,11 @@ router.patch("/:id", verifyToken, async(req, res) => {
       updateDoc.password = await bcrypt.hash(password, 10);
     }
 
-    const result = await db.collection("users").updateOne(
-      {_id: new ObjectId(id)},
-      {$set: updateDoc},
-    );
+    const result = await db
+      .collection("users")
+      .updateOne({ _id: new ObjectId(id) }, { $set: updateDoc });
 
-    if(result.matchedCount === 0) {
+    if (result.matchedCount === 0) {
       return res.status(404).json({
         success: false,
         message: "user not found",
@@ -229,13 +262,58 @@ router.patch("/:id", verifyToken, async(req, res) => {
   }
 });
 
+router.patch("/:id/avatar", verifyToken, upload.single("avatar"), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!ObjectId.isValid(id))
+      return res.status(400).json({ success: false, message: "Invalid user ID" });
+
+    if (!req.file)
+      return res.status(400).json({ success: false, message: "No image uploaded" });
+
+    // New image path for DB
+    const imagePath = `/uploads/images/${req.file.filename}`;
+
+
+    // Find user first
+    const user = await db.collection("users").findOne({ _id: new ObjectId(id) });
+
+    //  Delete old avatar safely
+    if (user?.avatar) {
+      const oldImageFullPath = path.join(process.cwd(), user.avatar);
+
+      if (fs.existsSync(oldImageFullPath)) {
+        fs.unlinkSync(oldImageFullPath);
+      }
+    }
+
+    // Save new avatar path
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { avatar: imagePath } }
+    );
+
+    res.json({
+      success: true,
+      message: "Profile Image Updated",
+      avatar: imagePath,
+    });
+
+  } catch (error) {
+    console.error("Profile image error:", error);
+    res.status(500).json({ success: false, message: "Upload failed" });
+  }
+});
+
+
 
 // delete user
-router.delete("/:id", verifyToken, async(req, res) => {
+router.delete("/:id", verifyToken, async (req, res) => {
   try {
-    const {id} = req.params;
+    const { id } = req.params;
 
-    if(!ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
         message: "Invalid User ID",
@@ -246,7 +324,7 @@ router.delete("/:id", verifyToken, async(req, res) => {
       _id: new ObjectId(id),
     });
 
-    if(result.deletedCount === 0) {
+    if (result.deletedCount === 0) {
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -256,15 +334,14 @@ router.delete("/:id", verifyToken, async(req, res) => {
     res.json({
       success: true,
       message: "User deleted Successfully",
-    })
+    });
   } catch (error) {
     console.error("Delete user error", error);
     res.status(500).json({
       success: false,
-      message: "Server error"
+      message: "Server error",
     });
   }
 });
-
 
 export default router;
