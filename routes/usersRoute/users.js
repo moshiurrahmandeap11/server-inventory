@@ -13,6 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
+
 const router = Router();
 
 router.get("/", verifyToken, async (req, res) => {
@@ -149,7 +150,6 @@ router.post("/register", async (req, res) => {
 });
 
 // logout
-
 router.post("/logout", (req, res) => {
   try {
     res.clearCookie("token", {
@@ -173,7 +173,6 @@ router.post("/logout", (req, res) => {
 
 
 // get user by Id
-
 router.get("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -213,7 +212,7 @@ router.get("/:id", verifyToken, async (req, res) => {
 router.patch("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { password, fullName } = req.body;
+    const { password, fullName, status, role } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -236,6 +235,47 @@ router.patch("/:id", verifyToken, async (req, res) => {
         });
       }
       updateDoc.password = await bcrypt.hash(password, 10);
+    }
+
+    // role update
+    if(role){
+      if(req.user.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Only Admin can change role"
+        });
+      };
+      const allowedRoles = ["admin", "manager", "user"];
+      if(!allowedRoles.includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Role"
+        });
+      }
+
+      updateDoc.role = role;
+    };
+
+
+    // status update
+    if(status){
+      if(req.user.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Only Admin can change status"
+        });
+      }
+
+      const allowedStatus = ["active", "inactive", "suspended"];
+      if(!allowedStatus.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Status value",
+        });
+      }
+
+      updateDoc.status = status;
+
     }
 
     const result = await db

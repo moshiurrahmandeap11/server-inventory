@@ -4,6 +4,7 @@ import express from "express";
 import { connectDB } from "./db/db.js";
 const PORT = process.env.PORT || 5000;
 
+import basicSettings from "./routes/basicSettingsRoute/basic-settings.js";
 import users from "./routes/usersRoute/users.js";
 const app = express();
 
@@ -33,12 +34,23 @@ await connectDB();
 
 // routes
 app.use("/api/users", users);
+app.use("/api/basic-settings", basicSettings);
 
 
 // Simple test route
 app.get('/', (req, res) => {
   res.send('Server is running!');
 });
+
+
+app.get("/version", (req, res) => {
+  res.json({
+    success: true,
+    version: "1.0.0",
+    appName: "Super Inventory",
+  });
+});
+
 
 // Start server
 app.listen(PORT, () => {
