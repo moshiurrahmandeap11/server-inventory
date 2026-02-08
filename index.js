@@ -14,6 +14,7 @@ const app = express();
 app.use(express.json());
 const allowedOrigins = [
   "http://localhost:3000",
+  "https://super-inventory-khaki.vercel.app",
 ];
 
 app.use(cors({
