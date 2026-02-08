@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 // JWT middleware
 const verifyToken = (req, res, next) => {
 
-  const token = req.cookies.token;
+  const token = req.cookies?.token;
 
   if (!token) {
     return res.status(401).json({ success: false, message: "Access Denied / No Token Provided" });
