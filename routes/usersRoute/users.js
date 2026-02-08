@@ -73,12 +73,14 @@ router.post("/login", async (req, res) => {
     );
 
     // send as http-only cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+res.cookie("token", token, {
+  httpOnly: true,
+  secure: true, // Vercel HTTPS e mandatory
+  sameSite: "none", // cross-site requests
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  domain: ".vercel.app" // optional, jodi same top-level domain thake
+});
+
 
     res.json({
       success: true,
