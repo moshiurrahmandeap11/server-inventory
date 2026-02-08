@@ -4,7 +4,7 @@ import path from "path";
 
 //  Allowed types grouped
 const FILE_TYPES = {
-  image: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+  image: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"],
   video: ["video/mp4", "video/mkv", "video/mov"],
   file: [
     "application/pdf",
