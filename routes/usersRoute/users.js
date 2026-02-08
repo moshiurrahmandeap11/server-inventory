@@ -36,6 +36,7 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
+// users.js - login route
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -53,7 +54,7 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid Credintials" });
+        .json({ success: false, message: "Invalid Credentials" });
     }
 
     // compare password
@@ -67,25 +68,36 @@ router.post("/login", async (req, res) => {
 
     // create jwt
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role || "user" },
+      { 
+        id: user._id, 
+        email: user.email, 
+        role: user.role || "user" 
+      },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
 
-    // send as http-only cookie
+    // Set cookie for cross-domain (Vercel specific)
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: true, // Must be true for HTTPS
+      sameSite: "none", // Important for cross-domain
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      domain: ".vercel.app", // Allow subdomains
+      path: "/",
     });
 
+    // Also send token in response for frontend to store
     res.json({
       success: true,
       message: "Login Successful",
-      token,
+      token, // Send token in response too
       user: {
         _id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        avatar: user.avatar,
       },
     });
   } catch (error) {
