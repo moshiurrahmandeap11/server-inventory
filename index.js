@@ -45,7 +45,7 @@ app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 
 await connectDB();
-
+ 
 // Routes
 app.use("/api/users", users);
 app.use("/api/basic-settings", basicSettings);
