@@ -5,8 +5,10 @@ import { connectDB } from "./db/db.js";
 const PORT = process.env.PORT || 5000;
 
 import basicSettings from "./routes/basicSettingsRoute/basic-settings.js";
+import customers from "./routes/customersRoute/customers.js";
 import productCategories from "./routes/productsRoute/product-categories.js";
 import totalProducts from "./routes/productsRoute/total-products.js";
+import suppliers from "./routes/suppliersRoute/suppliers.js";
 import users from "./routes/usersRoute/users.js";
 const app = express();
 
@@ -41,6 +43,8 @@ app.use("/api/users", users);
 app.use("/api/basic-settings", basicSettings);
 app.use("/api/products", totalProducts);
 app.use("/api/product-categories", productCategories);
+app.use("/api/customers", customers);
+app.use("/api/suppliers", suppliers);
 
 
 // Simple test route
