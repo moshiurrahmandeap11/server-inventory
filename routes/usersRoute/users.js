@@ -7,7 +7,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { db } from "../../db/db.js";
 import upload from "../../middleware/upload.js";
-import verifyToken from "../../middleware/verifyToken.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,7 +15,7 @@ const __dirname = path.dirname(__filename);
 
 const router = Router();
 
-router.get("/", verifyToken, async (req, res) => {
+router.get("/",  async (req, res) => {
   try {
     const users = await db
       .collection("users")
@@ -175,7 +174,7 @@ router.post("/logout", (req, res) => {
 
 
 // get user by Id
-router.get("/:id", verifyToken, async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -211,7 +210,7 @@ router.get("/:id", verifyToken, async (req, res) => {
   }
 });
 
-router.patch("/:id", verifyToken, async (req, res) => {
+router.patch("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { password, fullName, status, role } = req.body;
@@ -304,7 +303,7 @@ router.patch("/:id", verifyToken, async (req, res) => {
   }
 });
 
-router.patch("/:id/avatar", verifyToken, upload.single("avatar"), async (req, res) => {
+router.patch("/:id/avatar", upload.single("avatar"), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -351,7 +350,7 @@ router.patch("/:id/avatar", verifyToken, upload.single("avatar"), async (req, re
 
 
 // delete user
-router.delete("/:id", verifyToken, async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 

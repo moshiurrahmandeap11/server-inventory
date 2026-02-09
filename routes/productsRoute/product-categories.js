@@ -1,13 +1,11 @@
 import { Router } from "express";
 import { ObjectId } from "mongodb";
 import { db } from "../../db/db.js";
-import isAdmin from "../../middleware/isAdmin.js";
-import verifyToken from "../../middleware/verifyToken.js";
 
 const router = Router();
 
 // get all products categories
-router.get("/", verifyToken, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const categories = await db
       .collection("product-categories")
@@ -28,7 +26,7 @@ router.get("/", verifyToken, async (req, res) => {
 });
 
 // get single category by ID
-router.get("/:id", verifyToken, async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -65,7 +63,7 @@ router.get("/:id", verifyToken, async (req, res) => {
 });
 
 // category post
-router.post("/", verifyToken, isAdmin, async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     let { name } = req.body;
 
@@ -110,7 +108,7 @@ router.post("/", verifyToken, isAdmin, async (req, res) => {
 });
 
 // update category
-router.patch("/:id", verifyToken, async (req, res) => {
+router.patch("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
@@ -173,7 +171,7 @@ router.patch("/:id", verifyToken, async (req, res) => {
 });
 
 // delete category
-router.delete("/:id", verifyToken, async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 

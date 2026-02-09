@@ -4,13 +4,12 @@ import path from "path";
 import { db } from "../../db/db.js";
 import isAdmin from "../../middleware/isAdmin.js";
 import upload from "../../middleware/upload.js";
-import verifyToken from "../../middleware/verifyToken.js";
 
 const router = Router();
 
 
 // get website settings
-router.get("/",verifyToken, isAdmin, async(req, res) => {
+router.get("/", async(req, res) => {
     try {
         const settings = await db.collection("basic-settings").findOne();
         res.status(200).json({
@@ -31,7 +30,6 @@ router.get("/",verifyToken, isAdmin, async(req, res) => {
 // post ( create settings if not exists)
 router.post(
   "/",
-  verifyToken,
   isAdmin,
   upload.fields([
     { name: "logo", maxCount: 1 },
@@ -85,8 +83,6 @@ router.post(
 
 router.patch(
   "/",
-  verifyToken,
-  isAdmin,
   upload.fields([
     { name: "logo", maxCount: 1 },
     { name: "favicon", maxCount: 1 },
@@ -156,7 +152,7 @@ router.patch(
 
 
 // DELETE settings
-router.delete("/",verifyToken, isAdmin, async (req, res) => {
+router.delete("/", async (req, res) => {
     try {
         const existing = await db.collection("basic-settings").findOne();
 

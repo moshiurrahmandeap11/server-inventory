@@ -4,12 +4,11 @@ import { ObjectId } from "mongodb";
 import path from "path";
 import { db } from "../../db/db.js";
 import upload from "../../middleware/upload.js";
-import verifyToken from "../../middleware/verifyToken.js";
 
 const router = Router();
 
 // total products get 
-router.get("/", verifyToken, async(req, res) => {
+router.get("/", async(req, res) => {
     try {
         const totalProducts = await db.collection("products").find().toArray();
         res.json({
@@ -68,7 +67,7 @@ router.get("/:id", async (req, res) => {
 
 
 // products post 
-router.post("/", verifyToken, upload.single("image"), async (req, res) => {
+router.post("/", upload.single("image"), async (req, res) => {
   try {
     const {
       name,
@@ -131,7 +130,6 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
 // products update
 router.patch(
   "/:id",
-  verifyToken,
   upload.single("image"),
   async (req, res) => {
     try {
@@ -222,7 +220,7 @@ router.patch(
 );
 
 // products delete
-router.delete("/:id", verifyToken, async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
