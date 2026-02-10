@@ -37,7 +37,7 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const { websiteName } = req.body;
+      const { websiteName, phones, address } = req.body;
 
       const existing = await db.collection("basic-settings").findOne();
       if (existing) {
@@ -59,6 +59,8 @@ router.post(
         websiteName,
         logo,
         favicon,
+        phones,
+        address,
         createdAt: new Date(),
         updatedAt: new Date(),
       });

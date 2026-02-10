@@ -8,6 +8,8 @@ import basicSettings from "./routes/basicSettingsRoute/basic-settings.js";
 import customers from "./routes/customersRoute/customers.js";
 import productCategories from "./routes/productsRoute/product-categories.js";
 import totalProducts from "./routes/productsRoute/total-products.js";
+import salesInvoice from "./routes/salesRoute/sales-invoices.js";
+import salesItems from "./routes/salesRoute/sales-items.js";
 import suppliers from "./routes/suppliersRoute/suppliers.js";
 import users from "./routes/usersRoute/users.js";
 const app = express();
@@ -45,6 +47,8 @@ app.use("/api/products", totalProducts);
 app.use("/api/product-categories", productCategories);
 app.use("/api/customers", customers);
 app.use("/api/suppliers", suppliers);
+app.use("/api/sales-items", salesItems);
+app.use("/api/sales-invoices", salesInvoice);
 
 
 // Simple test route
