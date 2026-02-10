@@ -8,6 +8,7 @@ import basicSettings from "./routes/basicSettingsRoute/basic-settings.js";
 import customers from "./routes/customersRoute/customers.js";
 import productCategories from "./routes/productsRoute/product-categories.js";
 import totalProducts from "./routes/productsRoute/total-products.js";
+import purchasesInvoices from "./routes/purchaseRoute/purchase-invoices.js";
 import salesInvoice from "./routes/salesRoute/sales-invoices.js";
 import salesItems from "./routes/salesRoute/sales-items.js";
 import suppliers from "./routes/suppliersRoute/suppliers.js";
@@ -49,6 +50,7 @@ app.use("/api/customers", customers);
 app.use("/api/suppliers", suppliers);
 app.use("/api/sales-items", salesItems);
 app.use("/api/sales-invoices", salesInvoice);
+app.use("/api/purchases-invoices", purchasesInvoices);
 
 
 // Simple test route

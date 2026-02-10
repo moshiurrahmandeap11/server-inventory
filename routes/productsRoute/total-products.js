@@ -72,28 +72,18 @@ router.post("/", upload.single("image"), async (req, res) => {
     const {
       name,
       category,
-      price,
-      costPrice,
-      quantity,
-      supplier,
       description,
     } = req.body;
 
     if (
       !name ||
-      !category ||
-      price === undefined ||
-      costPrice === undefined ||
-      quantity === undefined ||
-      !supplier
+      !category
     ) {
       return res.status(400).json({
         success: false,
         message: "Required fields missing",
       });
     }
-
-    const profit = Number(price) - Number(costPrice);
     const imagePath = req.file
         ? `/uploads/images/${req.file.filename}`
         : null;
@@ -101,12 +91,7 @@ router.post("/", upload.single("image"), async (req, res) => {
     const result = await db.collection("products").insertOne({
       name,
       category,
-      price: parseFloat(price),
-      costPrice: parseFloat(costPrice),
-      quantity: parseFloat(quantity),
-      supplier,
       description: description || "",
-      profit,
       image: imagePath,
       createdAt: new Date(),
       updatedAt: new Date(),

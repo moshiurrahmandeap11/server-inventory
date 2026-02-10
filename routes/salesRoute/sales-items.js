@@ -62,8 +62,13 @@ router.post("/", async (req, res) => {
       vat = 0,
       tax = 0,
       discount = 0,
-      paid = 0,
-      salesBy,
+      paidAmount = 0,
+      salesManager,
+      productID,
+      productName,
+      productPrice,
+      productQty,
+
     } = req.body;
 
     if (!customerName?.trim())
@@ -111,21 +116,24 @@ router.post("/", async (req, res) => {
 
     const due = grandTotal - paid;
 
-    const newSale = await db.collection("sales").insertOne({
+    const newSale = await db.collection("sales-items").insertOne({
       customer: {
         name: customerName.trim(),
         phone: customerPhone.trim(),
         address: customerAddress || "",
       },
-      items,
+      productID,
+      productName,
+      productPrice,
+      productQty,
       subTotal,
       vat,
       tax,
       discount,
       grandTotal,
-      paid,
+      paidAmount,
       due,
-      salesBy: salesBy || "",
+      salesManager: salesManager || "",
       createdAt: new Date(),
     });
 
@@ -178,7 +186,7 @@ router.put("/:id", async (req, res) => {
       updatedDoc.due = existingSale.grandTotal - paid;
     }
 
-    await db.collection("sales").updateOne(
+    await db.collection("sales-items").updateOne(
       { _id: new ObjectId(id) },
       { $set: updatedDoc }
     );
@@ -200,26 +208,19 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("id", id);
 
     if (!ObjectId.isValid(id))
       return res.status(400).json({ success: false, message: "Invalid Sale ID" });
 
-    const sale = await db.collection("sales").findOne({
+    const sale = await db.collection("sales-items").findOne({
       _id: new ObjectId(id),
     });
 
     if (!sale)
       return res.status(404).json({ success: false, message: "Sale not found" });
 
-    // 🔥 restore stock
-    for (let item of sale.items) {
-      await db.collection("products").updateOne(
-        { _id: new ObjectId(item.productId) },
-        { $inc: { quantity: item.qty } }
-      );
-    }
-
-    await db.collection("sales").deleteOne({
+    await db.collection("sales-items").deleteOne({
       _id: new ObjectId(id),
     });
 

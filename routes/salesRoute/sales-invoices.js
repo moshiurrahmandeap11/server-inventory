@@ -58,6 +58,7 @@ router.post("/", async (req, res) => {
       productName,
       productPrice,
       productQty,
+      productCategory,
       discount = 0,
       vat = 0,
       paidAmount = 0,
@@ -121,6 +122,7 @@ router.post("/", async (req, res) => {
       productName,
       productPrice: price,
       productQty: qty,
+      category: productCategory,
       subtotal,
       discount: discountAmount,
       vatPercent: vat,
@@ -134,6 +136,27 @@ router.post("/", async (req, res) => {
       salesManager: salesManager || "",
       createdAt: new Date(),
     });
+
+    // 🔹 Save into sales-items collection
+await db.collection("sales-items").insertOne({
+  invoiceId: newInvoice.insertedId,
+  invoiceNumber,
+  productID,
+  productName,
+  productPrice: price,
+  productQty: qty,
+  category: productCategory,
+  subtotal,
+  discount: discountAmount,
+  vatPercent: vat,
+  vatAmount,
+  grandTotal,
+  customerName: customerName || "",
+  customerPhone: customerPhone || "",
+  salesManager: salesManager || "",
+  createdAt: new Date(),
+});
+
 
     // 🔹 Reduce Stock
     await db.collection("products").updateOne(
