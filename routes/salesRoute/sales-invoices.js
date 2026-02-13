@@ -56,6 +56,7 @@ router.post("/", async (req, res) => {
     const {
       productID,
       productName,
+      productCostPrice,
       productPrice,
       productQty,
       productCategory,
@@ -120,6 +121,7 @@ router.post("/", async (req, res) => {
       invoiceNumber,
       productID,
       productName,
+      productCostPrice,
       productPrice: price,
       productQty: qty,
       category: productCategory,
@@ -143,6 +145,7 @@ await db.collection("sales-items").insertOne({
   invoiceNumber,
   productID,
   productName,
+  productCostPrice,
   productPrice: price,
   productQty: qty,
   category: productCategory,

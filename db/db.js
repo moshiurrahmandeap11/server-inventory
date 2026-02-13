@@ -11,7 +11,7 @@ const pass = process.env.DB_PASS;
 console.log(user , pass);
 
 
-const uri = `mongodb+srv://${user}:${pass}@cluster0.amblvrx.mongodb.net/?appName=Cluster0`;
+const uri = `mongodb+srv://${user}:${pass}@mdb.26vlivz.mongodb.net/?appName=MDB`;
 
 const connectDB = async () => {
     try {

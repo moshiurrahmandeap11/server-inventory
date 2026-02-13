@@ -6,9 +6,12 @@ const PORT = process.env.PORT || 5000;
 
 import basicSettings from "./routes/basicSettingsRoute/basic-settings.js";
 import customers from "./routes/customersRoute/customers.js";
+import expenseCategory from "./routes/expenseRoute/expense-category.js";
+import expenses from "./routes/expenseRoute/expenses.js";
 import productCategories from "./routes/productsRoute/product-categories.js";
 import totalProducts from "./routes/productsRoute/total-products.js";
 import purchasesInvoices from "./routes/purchaseRoute/purchase-invoices.js";
+import preOrderSale from "./routes/salesRoute/pre-order-sale.js";
 import salesInvoice from "./routes/salesRoute/sales-invoices.js";
 import salesItems from "./routes/salesRoute/sales-items.js";
 import suppliers from "./routes/suppliersRoute/suppliers.js";
@@ -51,6 +54,9 @@ app.use("/api/suppliers", suppliers);
 app.use("/api/sales-items", salesItems);
 app.use("/api/sales-invoices", salesInvoice);
 app.use("/api/purchases-invoices", purchasesInvoices);
+app.use("/api/pre-order-sale", preOrderSale);
+app.use("/api/expenses", expenses);
+app.use("/api/expense-category", expenseCategory);
 
 
 // Simple test route

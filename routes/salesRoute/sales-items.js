@@ -23,6 +23,88 @@ router.get("/", async(req, res) => {
 });
 
 
+
+router.get("/today-sales", async (req, res) => {
+  try {
+    const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const result = await db.collection("sales-items")
+      .find({
+        createdAt: { $gte: last24Hours }
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.json({
+      success: true,
+      message: "Last 24 hours sales fetched successfully",
+      data: result,
+    });
+
+  } catch (err) {
+    console.error("Today sales fetching error", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+
+router.get("/monthly-revenue", async (req, res) => {
+  try {
+    const now = new Date();
+
+    const firstDayOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
+
+    const firstDayOfNextMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1
+    );
+
+    const result = await db.collection("sales-items").aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: firstDayOfMonth,
+            $lt: firstDayOfNextMonth
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$grandTotal" },
+          totalSales: { $sum: 1 }
+        }
+      }
+    ]).toArray();
+
+    res.json({
+      success: true,
+      message: "Monthly revenue fetched successfully",
+      data: result[0] || {
+        totalRevenue: 0,
+        totalSales: 0
+      }
+    });
+
+  } catch (err) {
+    console.error("Monthly revenue error", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+});
+
+
+
 // get single sale item by ID
 router.get("/:id", async(req, res) => {
     try {
@@ -66,6 +148,7 @@ router.post("/", async (req, res) => {
       salesManager,
       productID,
       productName,
+      productCostPrice,
       productPrice,
       productQty,
 
@@ -124,6 +207,7 @@ router.post("/", async (req, res) => {
       },
       productID,
       productName,
+      productCostPrice,
       productPrice,
       productQty,
       subTotal,
@@ -233,6 +317,9 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+
+
 
 
 export default router;
